@@ -1,0 +1,30 @@
+name: Databricks Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Databricks CLI
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+
+       - name: Deploy Notebooks to Databricks
+          env:
+            DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+            DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          run: |
+            # 
+            databricks workspace import --file "./bronze_layer/Ingest_to_Bronze.ipynb" "/Users/m20556065@gmail.com/NYC_Yellow_Taxi_Medallion_LakeHouse/bronze_layer/Ingest_to_Bronze" --format SOURCE --language PYTHON --overwrite
+            
+            databricks workspace import --file "./silver_layer/Transform_to_Silver.ipynb" "/Users/m20556065@gmail.com/NYC_Yellow_Taxi_Medallion_LakeHouse/silver_layer/Transform_to_Silver" --format SOURCE --language PYTHON --overwrite
+            
+            # Gold Layer (Fact Table)
+            databricks workspace import --file "./gold_layer/Fact Table/ingest_to_fact.ipynb" "/Users/m20556065@gmail.com/NYC_Yellow_Taxi_Medallion_LakeHouse/gold_layer/Fact Table/ingest_to_fact" --format SOURCE --language PYTHON --overwrite
